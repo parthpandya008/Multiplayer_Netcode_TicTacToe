@@ -70,3 +70,9 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+Multiplayer_Netcode_TicTacToe/.vsconfig
+/Multiplayer_Netcode_TicTacToe/Library
+/Multiplayer_Netcode_TicTacToe/Logs
+/Multiplayer_Netcode_TicTacToe/Temp
+/Multiplayer_Netcode_TicTacToe/UserSettings
+TicTacToeMultiplayer_Assets.zip
