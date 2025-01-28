@@ -7,6 +7,8 @@ public class GameManager : NetworkBehaviour
     public static GameManager Instance { get; private set; }
 
     public event EventHandler<OnClickedOnGridPositionEventArgs> OnClickedOnGridPosition;
+    public event EventHandler OnGameStarted;
+    public event EventHandler OnCurrentPlayerTypeChanged;
 
     public class OnClickedOnGridPositionEventArgs: EventArgs
     {
@@ -22,8 +24,8 @@ public class GameManager : NetworkBehaviour
         Circle
     }
 
-    public PlayerType localPlayerType;
-    public PlayerType currentPlayerPlayerType;
+    private PlayerType localPlayerType;
+    private PlayerType currentPlayerPlayerType;
 
     private void Awake()
     {
@@ -42,10 +44,27 @@ public class GameManager : NetworkBehaviour
             localPlayerType = PlayerType.Circle;
         }
 
+        //We just need to set this for server only, as the spawn logic is run on server only
         if (IsServer)
         {
-            currentPlayerPlayerType = PlayerType.Cross;
+          
+            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
         }
+    }
+
+    private void OnClientConnectedCallback(ulong obj)
+    {
+        if (NetworkManager.Singleton.ConnectedClientsList.Count == 2)
+        {
+            currentPlayerPlayerType = PlayerType.Cross;
+            TriggerOnGameStartedRpc();
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnGameStartedRpc()
+    {
+        OnGameStarted?.Invoke(this, EventArgs.Empty);
     }
 
     [Rpc(SendTo.Server)]
@@ -73,10 +92,22 @@ public class GameManager : NetworkBehaviour
                 currentPlayerPlayerType = PlayerType.Cross;
                 break;
         }
+        TriggerOnCurrentPlayerTypeChangedRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnCurrentPlayerTypeChangedRpc()
+    {
+        OnCurrentPlayerTypeChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public PlayerType GetLocalPlayerType()
     {
         return localPlayerType;
+    }
+
+    public PlayerType GetCurrentPlayerType()
+    {
+        return currentPlayerPlayerType;
     }
 }
