@@ -40,6 +40,7 @@ public class GameVisualManager : NetworkBehaviour
         }
 
         Transform spawnedTransform = Instantiate(prefab, GridPosition(x, y), Quaternion.identity);
+        //This is how we spawn the object on the server
         spawnedTransform.GetComponent<NetworkObject>().Spawn(true);
         //spawnedTransform.position = GridPosition(x, y);
     }
