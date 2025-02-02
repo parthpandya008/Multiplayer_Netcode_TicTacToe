@@ -10,11 +10,42 @@ public class GameVisualManager : NetworkBehaviour
     private Transform crossPrefab;
     [SerializeField]
     private Transform circlePrefab;
+    [SerializeField]
+    private Transform lineCompletePrefab;
 
 
     private void Start()
     {
         GameManager.Instance.OnClickedOnGridPosition += OnClickedOnGridPosition;
+        GameManager.Instance.OnGameWin += OnGameWin;
+    }
+
+    private void OnGameWin(object sender, GameManager.OnGameWinEventArgs e)
+    {
+        float eularZ = 0;
+
+        switch(e.line.orientation)
+        {
+            case GameManager.LineOrientation.Horizontal:
+                eularZ = 0;
+                break;
+            case GameManager.LineOrientation.Vertical:
+                eularZ = 90;
+                break;
+            case GameManager.LineOrientation.DiagonalA:
+                eularZ = 45; 
+                break;
+            case GameManager.LineOrientation.DiagonalB:
+                eularZ = - 45;
+                break;
+        }
+
+        Quaternion lineQuaternion = Quaternion.Euler(0,0, eularZ);
+        Transform lineCompleteTransform = Instantiate(lineCompletePrefab, 
+            GridPosition (e.line.centerGridPosition.x, e.line.centerGridPosition.y), lineQuaternion);
+
+        //This is how we spawn the object on the netwrok for all the client
+        lineCompleteTransform.GetComponent<NetworkObject>().Spawn(true);
     }
 
     private void OnClickedOnGridPosition(object sender, GameManager.OnClickedOnGridPositionEventArgs e)
@@ -40,7 +71,7 @@ public class GameVisualManager : NetworkBehaviour
         }
 
         Transform spawnedTransform = Instantiate(prefab, GridPosition(x, y), Quaternion.identity);
-        //This is how we spawn the object on the server
+        //This is how we spawn the object on the server, so it gets spawned on all the client
         spawnedTransform.GetComponent<NetworkObject>().Spawn(true);
         //spawnedTransform.position = GridPosition(x, y);
     }
