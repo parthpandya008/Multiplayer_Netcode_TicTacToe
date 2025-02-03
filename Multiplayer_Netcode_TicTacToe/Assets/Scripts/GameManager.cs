@@ -16,6 +16,7 @@ public class GameManager : NetworkBehaviour
     public class OnGameWinEventArgs : EventArgs
     {
         public LineData line;
+        public PlayerType winPlayerType;
     }
 
     public enum PlayerType
@@ -242,17 +243,17 @@ public class GameManager : NetworkBehaviour
     //This method is also server authoritative as it's called from server authoritative method
     private void TestWinner()
     {
-        foreach (LineData line in linesDataList)
+        for(int i = 0; i < linesDataList.Count; i++) 
+        //foreach (LineData line in linesDataList)
         {
-            if(TestWinnerLine(line))
+            LineData line = linesDataList[i];
+            if (TestWinnerLine(line))
             {
                 //WIn
                 Debug.Log("Winner!");
-                OnGameWin?.Invoke(this, new OnGameWinEventArgs
-                {
-                    line = line,
-                });
                 currentPlayerPlayerType.Value = PlayerType.None;
+                TriggerOnGameWinRpc(i, playerTypeArray[line.centerGridPosition.x, line.centerGridPosition.y]);
+               
                 break;
             }
         }
@@ -267,5 +268,19 @@ public class GameManager : NetworkBehaviour
             });
             currentPlayerPlayerType.Value = PlayerType.None;
         }*/
+    }
+
+    //Here we are passing lineIndex because we cannot pass the LineData directly as Rpc methods has some limitations
+    //Here the linesDataList is comon which is at both the side, client and server
+    //To pass the LineData into RPC method we need to do some Network serilzation
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnGameWinRpc(int lineIndex, PlayerType winPlayerType)
+    {
+       LineData line = linesDataList[lineIndex];
+        OnGameWin?.Invoke(this, new OnGameWinEventArgs
+        {
+            line = line,
+            winPlayerType = winPlayerType
+        });
     }
 }
