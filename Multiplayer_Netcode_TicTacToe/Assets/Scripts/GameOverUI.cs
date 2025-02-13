@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameOverUI : MonoBehaviour
 {
@@ -10,11 +11,27 @@ public class GameOverUI : MonoBehaviour
     private Color winColor;
     [SerializeField]
     private Color loseColor;
+    [SerializeField]
+    private Button rematchButton;
+
+    private void Awake()
+    {
+        rematchButton.onClick.AddListener(()=>
+        {
+            GameManager.Instance.RematchRpc();
+        });
+    }
 
     private void Start()
     {
         Hide();
         GameManager.Instance.OnGameWin += OnGameWin;
+        GameManager.Instance.OnRematch += OnRematch;
+    }
+
+    private void OnRematch(object sender, EventArgs e)
+    {
+        Hide();
     }
 
     private void OnGameWin(object sender, GameManager.OnGameWinEventArgs e)

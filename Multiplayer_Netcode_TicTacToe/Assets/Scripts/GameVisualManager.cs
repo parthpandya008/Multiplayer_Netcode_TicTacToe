@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -13,11 +15,31 @@ public class GameVisualManager : NetworkBehaviour
     [SerializeField]
     private Transform lineCompletePrefab;
 
+    private List<GameObject> visualGameObjectList;
+
+    private void Awake()
+    {
+        visualGameObjectList = new List<GameObject>();
+    }
 
     private void Start()
     {
         GameManager.Instance.OnClickedOnGridPosition += OnClickedOnGridPosition;
         GameManager.Instance.OnGameWin += OnGameWin;
+        GameManager.Instance.OnRematch += OnRematch;
+    }
+
+    private void OnRematch(object sender, EventArgs e)
+    {
+       if(!NetworkManager.Singleton.IsServer)
+        {
+            return;
+        }
+        foreach (GameObject go in visualGameObjectList)
+        {
+            Destroy(go);
+        }
+        visualGameObjectList.Clear();
     }
 
     private void OnGameWin(object sender, GameManager.OnGameWinEventArgs e)
@@ -50,6 +72,8 @@ public class GameVisualManager : NetworkBehaviour
 
         //This is how we spawn the object on the netwrok for all the client
         lineCompleteTransform.GetComponent<NetworkObject>().Spawn(true);
+
+        visualGameObjectList.Add(lineCompleteTransform.gameObject);
     }
 
     private void OnClickedOnGridPosition(object sender, GameManager.OnClickedOnGridPositionEventArgs e)
@@ -78,6 +102,8 @@ public class GameVisualManager : NetworkBehaviour
         //This is how we spawn the object on the server, so it gets spawned on all the client
         spawnedTransform.GetComponent<NetworkObject>().Spawn(true);
         //spawnedTransform.position = GridPosition(x, y);
+
+        visualGameObjectList.Add(spawnedTransform.gameObject);
     }
 
     private Vector2 GridPosition(int x, int y)

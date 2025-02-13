@@ -48,6 +48,7 @@ public class GameManager : NetworkBehaviour
     public event EventHandler OnGameStarted;
     public event EventHandler<OnGameWinEventArgs> OnGameWin;
     public event EventHandler OnCurrentPlayerTypeChanged;
+    public event EventHandler OnRematch;
 
     private PlayerType localPlayerType;
     private NetworkVariable<PlayerType> currentPlayerPlayerType = new NetworkVariable<PlayerType>();
@@ -282,5 +283,26 @@ public class GameManager : NetworkBehaviour
             line = line,
             winPlayerType = winPlayerType
         });
+    }
+
+    [Rpc(SendTo.Server)]
+    public void RematchRpc()
+    {
+        for (int x = 0; x < playerTypeArray.GetLength(0); x++)
+        {
+            for(int y = 0; y < playerTypeArray.GetLength(1); y++)
+            {
+                playerTypeArray[x,y] = PlayerType.None;
+            }
+        }
+        currentPlayerPlayerType.Value = PlayerType.Cross;
+
+        TriggerOnRematchRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnRematchRpc()
+    {
+        OnRematch?.Invoke(this, EventArgs.Empty);
     }
 }
